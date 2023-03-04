@@ -18,6 +18,11 @@ import time
 from dense_ed_tlmf import *
 from utils_tlmf import *
 
+
+import sys 
+sys.path.append("/home/yrshen/Desktop/TLMF/cme216_final_project/analysis/")
+import parseData
+
 '''
 "Accelerated training of neural networks via multi-fidelity simulations"
     https://github.com/DDMS-ERE-Stanford/Transfer_Learning_on_Multi_Fidelity_Data.git
@@ -103,88 +108,35 @@ Reads the data in the .hdf5 files and adds it to "dat" variable
 #################################################################
 #################################################################
 '''
-path = '/dummy_path/'  #project path
 
-filename = 'HFS_DATA_1.hdf5'
-filename_full = path + filename
-print(filename_full)
-f = File(filename_full,'r')
 
-# the data needs to be transposed as (3,2,0,1) to get images from matlab convention the form we want
-ks = np.transpose(f['ks'], (3,2,0,1)) * (10**14)
-ps = np.transpose(f['ps'], (3,2,0,1))
-ss = np.transpose(f['ss'], (3,2,0,1))
-f.close()
 
-dat = {}  # primary data variable
-dat['ks_hfs'] = ks
-dat['ps_hfs'] = ps
-dat['ss_hfs'] = ss
-##########################################################
-##########################################################
-filename = 'HFS_DATA_2.hdf5'
-filename_full = path + filename
-print(filename_full)
-f = File(filename_full,'r')
 
-# the data needs to be transposed as (3,2,0,1) to get images back
-ks = np.transpose(f['ks'], (3,2,0,1)) * (10**14)
-ps = np.transpose(f['ps'], (3,2,0,1))
-ss = np.transpose(f['ss'], (3,2,0,1))
-f.close()
 
-dat['ks_hfs'] = np.concatenate((dat['ks_hfs'],ks),axis=0)
-dat['ps_hfs'] = np.concatenate((dat['ps_hfs'],ps),axis=0)
-dat['ss_hfs'] = np.concatenate((dat['ss_hfs'],ss),axis=0)
+#########################Parse Euler data 
+eulerDataRootPath = "/home/yrshen/Desktop/TLMF/euler_data/"
+dataFileName = "surface_flow.dat"
+eulerData = parseData.parse_data(eulerDataRootPath, dataFileName)
+eulerData = np.asarray(eulerData)
 
-print(dat['ks_hfs'].shape)
-print(dat['ps_hfs'].shape)
-print(dat['ss_hfs'].shape)
+#########################Parse RANS data
+ransDataRootPath =  "/home/yrshen/Desktop/TLMF/rans_data/"
+ransData = parseData.parse_data(ransDataRootPath, dataFileName)
+ransData = np.asarray(ransData)
 
-'''
-#################################################################
-#################################################################
-Import 64x64 data
 
-Reads the data in the .hdf5 files and adds it to "dat" variable
-#################################################################
-#################################################################
-'''
+dat = {}
 
-filename = 'LFS_DATA_1.hdf5'
-filename_full = path + filename
-print(filename_full)
-f = File(filename_full,'r')
+dat['ks_lfs'] = eulerData[:,:,2]
+dat['ps_lfs'] = eulerData[:,:,3]
+dat['ss_lfs'] = eulerData[:,:,4]
 
-# the data needs to be transposed as (3,2,0,1) to get images back
-ks = np.transpose(f['ks_fine'], (3,2,0,1)) * (10**14)
-ps = np.transpose(f['ps'], (3,2,0,1))
-ss = np.transpose(f['ss'], (3,2,0,1))
-f.close()
 
-dat['ks_lfs'] = ks
-dat['ps_lfs'] = ps
-dat['ss_lfs'] = ss
-##########################################################
-##########################################################
-filename = 'LFS_DATA_2.hdf5'
-filename_full = path + filename
-print(filename_full)
-f = File(filename_full,'r')
+dat['ks_hfs'] = ransData[:,:,2]
+dat['ps_hfs'] = ransData[:,:,3]
+dat['ss_hfs'] = ransData[:,:,4]
 
-# the data needs to be transposed as (3,2,0,1) to get images back
-ks = np.transpose(f['ks_fine'], (3,2,0,1)) * (10**14)
-ps = np.transpose(f['ps'], (3,2,0,1))
-ss = np.transpose(f['ss'], (3,2,0,1))
-f.close()
 
-dat['ks_lfs'] = np.concatenate((dat['ks_lfs'],ks),axis=0)
-dat['ps_lfs'] = np.concatenate((dat['ps_lfs'],ps),axis=0)
-dat['ss_lfs'] = np.concatenate((dat['ss_lfs'],ss),axis=0)
-
-print(dat['ks_lfs'].shape)
-print(dat['ps_lfs'].shape)
-print(dat['ss_lfs'].shape)
 
 '''
 #################################################################
